@@ -5,11 +5,13 @@ from django.utils.text import slugify
 from django.conf import settings
 from utils import utils
 
+from django.forms import ValidationError
 
-class Produto(models.Model):
+
+class Produto(models.Model):  # informar ao usuario parametros
     nome = models.CharField(max_length=255)
     descricao_curta = models.TextField(max_length=255)
-    descricao_longa = models.TextField()
+    descricao_longa = models.TextField(max_length=510)
     imagem = models.ImageField(
         upload_to='produto_imagens/%Y/%m/', blank=True, null=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
