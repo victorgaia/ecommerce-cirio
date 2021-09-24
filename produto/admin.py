@@ -5,7 +5,7 @@ from . import models
 class VariacaoInline(admin.TabularInline):
     model = models.Variacao
     min_num = 1
-    extra = 0
+    extra = 1
     can_delete = True
 
 

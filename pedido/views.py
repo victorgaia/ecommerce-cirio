@@ -1,8 +1,9 @@
 from django.shortcuts import redirect, reverse
 from django.views.generic import ListView, DetailView
 from django.views import View
-# from django.http import HttpResponse
+from django.http import HttpResponse
 from django.contrib import messages
+import pywhatkit
 
 from produto.models import Variacao
 from .models import Pedido, ItemPedido
@@ -25,6 +26,13 @@ class DispatchLoginRequiredMixin(View):
 
 class Pagar(DispatchLoginRequiredMixin, DetailView):
     template_name = 'pedido/pagar.html'
+    model = Pedido
+    pk_url_kwarg = 'pk'
+    context_object_name = 'pedido'
+
+
+class EnviaPedido(DispatchLoginRequiredMixin, DetailView):
+    template_name = 'pedido/whatsapp.html'
     model = Pedido
     pk_url_kwarg = 'pk'
     context_object_name = 'pedido'
@@ -118,6 +126,8 @@ class SalvarPedido(View):
         return redirect(
             reverse(
                 'pedido:pagar',
+                pywhatkit.sendwhatmsg_instantly(
+                    '+5591980421942', str(carrinho), 4),
                 kwargs={
                     'pk': pedido.pk
                 }

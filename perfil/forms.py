@@ -22,6 +22,9 @@ class UserForm(forms.ModelForm):
         widget=forms.PasswordInput(),
         label='Confirmação senha'
     )
+    email = forms.CharField(
+        required=True,
+    )
 
     def __init__(self, usuario=None, *args, **kwargs):
         super().__init__(*args, **kwargs)

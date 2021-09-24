@@ -1,3 +1,5 @@
+import perfil
+from typing import List
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -5,9 +7,12 @@ from django.views import View
 from django.http import HttpResponse
 from django.contrib import messages
 from django.db.models import Q
-
 from . import models
 from perfil.models import Perfil
+import produto
+from django.contrib.auth.models import User
+import copy
+from . import forms
 
 
 class ListaProdutos(ListView):
@@ -24,7 +29,7 @@ class Busca(ListaProdutos):
         qs = super().get_queryset(*args, **kwargs)
 
         if not termo:
-            return qs
+            termo = ' '
 
         self.request.session['termo'] = termo
 
@@ -43,6 +48,73 @@ class DetalheProduto(DetailView):
     template_name = 'produto/detalhe.html'
     context_object_name = 'produto'
     slug_url_kwarg = 'slug'
+
+
+class BaseProduto(View):
+    template_name = 'produto/cadastro.html'
+
+    def setup(self, *args, **kwargs):
+        super().setup(*args, **kwargs)
+
+        self.carrinho = copy.deepcopy(self.request.session.get('carrinho', {}))
+
+        if self.request.user.is_authenticated:
+
+            self.contexto = {
+
+                'produtoform': forms.ProdutoForm(
+                    data=self.request.POST or None,
+                    instance=self.request.user
+                ),
+                'produtoadminform': forms.ProdutoAdminForm(
+                    data=self.request.POST or None,
+                    instance=self.request.user
+                ),
+            }
+        else:
+            self.contexto = {
+                'produtoform': forms.ProdutoForm(
+                    data=self.request.POST or None
+                ),
+                'produtoadminform': forms.ProdutoAdminForm(
+                    data=self.request.POST or None,
+                    instance=self.request.user
+                ),
+            }
+
+        self.produtoform = self.contexto['produtoform']
+        self.produtoadminform = self.contexto['produtoadminform']
+
+        self.renderizar = render(
+            self.request, self.template_name, self.contexto)
+
+    def get(self, *args, **kwargs):
+        return self.renderizar
+
+
+class CriarProduto(BaseProduto):
+    def post(self, *args, **kwargs):
+        if not self.produtoform.is_valid():
+            messages.error(
+                self.request,
+                'Existem erros no formulário de cadastro. Verifique se todos '
+                'os campos foram preenchidos corretamente.'
+            )
+
+            return self.renderizar
+
+        messages.success(
+            self.request,
+            'Seu produto foi adicionado'
+        )
+
+        return redirect('produto:lista')
+        return self.renderizar
+
+
+class CadastraProduto(ListView):
+    model = models.Produto
+    template_name = 'produto/cadastro.html'
 
 
 class AdicionarAoCarrinho(View):

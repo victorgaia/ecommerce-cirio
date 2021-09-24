@@ -135,7 +135,7 @@ class Criar(BasePerfil):
             'Você fez login e pode concluir sua compra.'
         )
 
-        return redirect('produto:carrinho')
+        return redirect('produto:detalhe')
         return self.renderizar
 
 
